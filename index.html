@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>CHARLEY DUDS BLINDTEST</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
 <style>
 :root{--bg-dark:#0a0a12;--card-bg:#141424;--neon-purple:#a855f7;--neon-blue:#3b82f6;--neon-pink:#ec4899;--text-light:#f3f4f6;--text-muted:#9ca3af;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:var(--bg-dark);color:var(--text-light);margin:0;padding:15px;display:flex;flex-direction:column;align-items:center}
@@ -24,10 +25,6 @@ button.action-btn{width:100%;padding:14px;border:none;border-radius:8px;backgrou
 .pts-btn.minus:hover{background:#ef4444}
 .score-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)}
 .score-val{font-weight:bold;color:var(--neon-purple);min-width:56px;text-align:center}
-.adjust-box{background:#1f2937;border-radius:10px;padding:14px;margin-bottom:15px}
-.adjust-box input,.adjust-box select{margin-bottom:10px}
-.adjust-btns{display:flex;gap:10px}
-.adjust-btns button{flex:1;padding:12px;border:none;border-radius:8px;color:#fff;font-weight:bold;cursor:pointer}
 .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.85);justify-content:center;align-items:center;flex-direction:column;z-index:1000}
 .modal-content{background:var(--card-bg);padding:25px;border-radius:16px;border:1px solid var(--neon-purple);text-align:center}
 #qrcode{background:#fff;padding:15px;border-radius:12px;display:inline-block;margin:15px 0}
@@ -45,6 +42,7 @@ button.action-btn{width:100%;padding:14px;border:none;border-radius:8px;backgrou
 
   <div id="view-joueur" class="card">
     <h2 style="color:var(--neon-blue);margin-top:0;">Rejoindre la partie</h2>
+    <p id="conn-status" style="font-size:.85rem;color:var(--text-muted);margin:0 0 12px;">⏳ Connexion au DJ…</p>
     <label for="eq-num">Choisissez votre équipe :</label>
     <select id="eq-num"></select>
     <label for="answer-input">Votre réponse :</label>
@@ -67,20 +65,11 @@ button.action-btn{width:100%;padding:14px;border:none;border-radius:8px;backgrou
       <button class="action-btn" onclick="nextQuestion()">➡️ Q. Suivante</button>
     </div>
 
+    <p id="host-status" style="font-size:.85rem;color:var(--text-muted);"></p>
     <h3 style="color:var(--neon-blue);">Réponses reçues (Q<span id="q-num">1</span>)</h3>
     <div id="responses-list"><p style="color:var(--text-muted);">Aucune réponse envoyée pour l’instant.</p></div>
 
-    <h3 style="color:var(--neon-purple);margin-top:25px;">Ajuster les points</h3>
-    <div class="adjust-box">
-      <select id="adj-team"></select>
-      <input type="number" id="adj-pts" value="1" min="1" placeholder="Nombre de points">
-      <div class="adjust-btns">
-        <button style="background:#10b981;" onclick="adjustCustom(1)">➕ Ajouter</button>
-        <button style="background:#ef4444;" onclick="adjustCustom(-1)">➖ Retirer</button>
-      </div>
-    </div>
-
-    <h3 style="color:var(--neon-purple);">Classement général (réservé DJ)</h3>
+    <h3 style="color:var(--neon-purple);margin-top:25px;">Classement général (réservé DJ)</h3>
     <div id="leaderboard"></div>
   </div>
 </div>
@@ -135,13 +124,11 @@ function initTeams() {
 
   const opts = names.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
   const playerSel = document.getElementById('eq-num');
-  const adjSel = document.getElementById('adj-team');
-  const prevPlayer = playerSel.value, prevAdj = adjSel.value;
+  const prevPlayer = playerSel.value;
   playerSel.innerHTML = opts;
-  adjSel.innerHTML = opts;
   if (names.includes(prevPlayer)) playerSel.value = prevPlayer;
-  if (names.includes(prevAdj)) adjSel.value = prevAdj;
   updateLeaderboard();
+  broadcast();
 }
 
 function openAdminAuth() {
@@ -158,6 +145,7 @@ function submitPin() {
     document.getElementById('admin-toggle-btn').innerText = "🎧 Accès Dashboard";
     closePin();
     toggleAdminView();
+    startHost();
   } else {
     document.getElementById('pin-error').innerText = 'Code incorrect.';
   }
@@ -178,18 +166,104 @@ function logoutAdmin() {
 }
 
 function sendAnswer() {
-  if (isLocked) { document.getElementById('player-status').innerText = '🔒 Les réponses sont fermées pour cette question.'; return; }
   const team = document.getElementById('eq-num').value;
   const text = document.getElementById('answer-input').value.trim();
   if (!text) return;
-  if (responses.find(r => r.team === team && r.q === currentQuestion)) {
-    document.getElementById('player-status').innerText = '❌ Une seule réponse autorisée par question !';
-    return;
-  }
+  const st = document.getElementById('player-status');
+  if (!conn || !conn.open) { st.innerText = '⏳ Pas encore connecté au DJ, patientez…'; return; }
+  conn.send({ t: 'answer', team, text });
+  st.innerText = 'Envoi…';
+}
+
+/* ---------- Connexion entre téléphones (PeerJS) ---------- */
+const HOST_ID = 'charleyduds-blindtest-7314-dj';
+const clients = new Set();
+let hostPeer = null, playerPeer = null, conn = null, retryTimer = null, hostMode = false, hostReady = false, playerGen = 0, lastTeams = '', lastQ = 0;
+
+function stateMsg() { return { t: 'state', teams: Object.keys(scores), q: currentQuestion, locked: isLocked }; }
+function broadcast() { clients.forEach(c => { if (c.open) c.send(stateMsg()); }); }
+
+function updateHostInfo(err) {
+  const el = document.getElementById('host-status');
+  if (err) { el.style.color = '#ef4444'; el.innerText = err; return; }
+  el.style.color = '#10b981';
+  el.innerText = `📡 En ligne · ${clients.size} téléphone(s) connecté(s)`;
+}
+
+function startHost() {
+  if (hostMode) return;
+  hostMode = true;
+  stopPlayer();
+  hostPeer = new Peer(HOST_ID);
+  hostPeer.on('open', () => { hostReady = true; updateHostInfo(); });
+  hostPeer.on('connection', c => {
+    c.on('open', () => { clients.add(c); c.send(stateMsg()); updateHostInfo(); });
+    c.on('close', () => { clients.delete(c); updateHostInfo(); });
+    c.on('data', d => handleAnswer(c, d));
+  });
+  hostPeer.on('error', e => {
+    if (e.type === 'unavailable-id') {
+      hostMode = false;
+      updateHostInfo('⚠️ Un autre écran DJ est déjà ouvert. Fermez-le, attendez 10 secondes, puis rechargez cette page.');
+    } else { updateHostInfo('⚠️ Connexion impossible (' + e.type + '). Rechargez la page.'); }
+  });
+}
+
+function handleAnswer(c, d) {
+  if (!d || d.t !== 'answer') return;
+  const team = String(d.team || ''), text = String(d.text || '').trim().slice(0, 120);
+  if (!(team in scores) || !text) return c.send({ t: 'ack', ok: false, msg: '❌ Réponse invalide.' });
+  if (isLocked) return c.send({ t: 'ack', ok: false, msg: '🔒 Les réponses sont fermées pour cette question.' });
+  if (responses.find(r => r.team === team && r.q === currentQuestion)) return c.send({ t: 'ack', ok: false, msg: '❌ Une seule réponse autorisée par question !' });
   responses.push({ team, text, q: currentQuestion });
-  document.getElementById('player-status').innerText = `✅ Réponse envoyée pour ${team} !`;
-  document.getElementById('answer-input').value = '';
   renderResponses();
+  c.send({ t: 'ack', ok: true, msg: `✅ Réponse envoyée pour ${team} !` });
+}
+
+function setConn(txt) { document.getElementById('conn-status').innerText = txt; }
+
+function stopPlayer() {
+  playerGen++;
+  clearTimeout(retryTimer); retryTimer = null;
+  if (playerPeer) { try { playerPeer.destroy(); } catch (e) {} }
+  playerPeer = null; conn = null;
+}
+
+function scheduleRetry(gen) {
+  if (gen !== playerGen || hostMode || retryTimer) return;
+  retryTimer = setTimeout(() => { retryTimer = null; startPlayer(); }, 3000);
+}
+
+function startPlayer() {
+  if (hostMode) return;
+  stopPlayer();
+  const gen = playerGen;
+  playerPeer = new Peer();
+  playerPeer.on('open', () => {
+    if (gen !== playerGen) return;
+    conn = playerPeer.connect(HOST_ID, { reliable: true });
+    conn.on('open', () => { if (gen === playerGen) setConn('🟢 Connecté au DJ'); });
+    conn.on('data', d => { if (gen === playerGen) onPlayerData(d); });
+    conn.on('close', () => { if (gen === playerGen) { setConn('⏳ Reconnexion…'); scheduleRetry(gen); } });
+  });
+  playerPeer.on('error', () => { if (gen === playerGen) { setConn('⏳ En attente du DJ…'); scheduleRetry(gen); } });
+}
+
+function onPlayerData(m) {
+  if (m.t === 'state') {
+    const key = m.teams.join('|');
+    if (key !== lastTeams) {
+      lastTeams = key;
+      const sel = document.getElementById('eq-num'), prev = sel.value;
+      sel.innerHTML = m.teams.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+      if (m.teams.includes(prev)) sel.value = prev;
+    }
+    if (m.q !== lastQ) { lastQ = m.q; document.getElementById('player-status').innerText = ''; }
+    setConn(m.locked ? '🔒 Réponses fermées' : `🟢 Connecté · Question ${m.q}`);
+  } else if (m.t === 'ack') {
+    document.getElementById('player-status').innerText = m.msg;
+    if (m.ok) document.getElementById('answer-input').value = '';
+  }
 }
 
 function renderResponses() {
@@ -216,13 +290,6 @@ function addPoints(team, pts) {
   updateLeaderboard();
 }
 
-function adjustCustom(sign) {
-  const team = document.getElementById('adj-team').value;
-  const pts = parseInt(document.getElementById('adj-pts').value);
-  if (!team || !pts || pts < 1) { document.getElementById('adj-pts').value = 1; return; }
-  addPoints(team, sign * pts);
-}
-
 function updateLeaderboard() {
   const board = document.getElementById('leaderboard');
   const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
@@ -240,6 +307,7 @@ function toggleLock() {
   const btn = document.getElementById('lock-btn');
   btn.innerText = isLocked ? '🔓 Ouvrir réponses' : '🔒 Fermer réponses';
   btn.style.background = isLocked ? '#10b981' : '#ef4444';
+  broadcast();
 }
 
 function nextQuestion() {
@@ -250,6 +318,7 @@ function nextQuestion() {
   document.getElementById('lock-btn').style.background = '#ef4444';
   document.getElementById('player-status').innerText = '';
   renderResponses();
+  broadcast();
 }
 
 function openQRModal() {
@@ -261,6 +330,7 @@ function openQRModal() {
 function closeQRModal() { document.getElementById('qr-modal').style.display = 'none'; }
 
 initTeams();
+startPlayer();
 </script>
 </body>
 </html>
