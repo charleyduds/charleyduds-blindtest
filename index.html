@@ -1,405 +1,266 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CHARLEY DUDS BLINDTEST</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <style>
-        :root {
-            --bg-dark: #0a0a12;
-            --card-bg: #141424;
-            --neon-purple: #a855f7;
-            --neon-blue: #3b82f6;
-            --neon-pink: #ec4899;
-            --text-light: #f3f4f6;
-            --text-muted: #9ca3af;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-light);
-            margin: 0;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 500px;
-        }
-
-        h1 {
-            text-align: center;
-            font-size: 1.8rem;
-            color: var(--neon-purple);
-            text-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
-            margin-bottom: 5px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .subtitle {
-            text-align: center;
-            color: var(--neon-blue);
-            font-size: 0.9rem;
-            font-weight: bold;
-            margin-bottom: 20px;
-            letter-spacing: 3px;
-        }
-
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .qr-btn {
-            background: rgba(59, 130, 246, 0.2);
-            border: 1px solid var(--neon-blue);
-            color: var(--neon-blue);
-            padding: 8px 14px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .admin-lock-btn {
-            background: transparent;
-            border: 1px solid var(--text-muted);
-            color: var(--text-muted);
-            padding: 8px 14px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            cursor: pointer;
-        }
-
-        .card {
-            background: var(--card-bg);
-            border: 1px solid rgba(168, 85, 247, 0.2);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-
-        input, select {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #374151;
-            background: #1f2937;
-            color: #fff;
-            box-sizing: border-box;
-            margin-bottom: 15px;
-            font-size: 1rem;
-        }
-
-        button.action-btn {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 8px;
-            background: linear-gradient(45deg, var(--neon-purple), var(--neon-blue));
-            color: #fff;
-            font-weight: bold;
-            font-size: 1rem;
-            cursor: pointer;
-            box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
-        }
-
-        .response-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            border-bottom: 1px solid #374151;
-        }
-
-        .pts-btn {
-            background: #374151;
-            border: none;
-            color: #fff;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-left: 5px;
-        }
-
-        .pts-btn:hover {
-            background: var(--neon-purple);
-        }
-
-        .score-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-
-        /* Modal QR Code */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            z-index: 1000;
-        }
-
-        .modal-content {
-            background: var(--card-bg);
-            padding: 25px;
-            border-radius: 16px;
-            border: 1px solid var(--neon-purple);
-            text-align: center;
-        }
-
-        #qrcode {
-            background: white;
-            padding: 15px;
-            border-radius: 12px;
-            display: inline-block;
-            margin: 15px 0;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>CHARLEY DUDS BLINDTEST</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--bg-dark:#0a0a12;--card-bg:#141424;--neon-purple:#a855f7;--neon-blue:#3b82f6;--neon-pink:#ec4899;--text-light:#f3f4f6;--text-muted:#9ca3af;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:var(--bg-dark);color:var(--text-light);margin:0;padding:15px;display:flex;flex-direction:column;align-items:center}
+.container{width:100%;max-width:500px}
+h1{text-align:center;font-size:1.8rem;color:var(--neon-purple);text-shadow:0 0 10px rgba(168,85,247,.5);margin-bottom:5px;text-transform:uppercase;letter-spacing:2px}
+.subtitle{text-align:center;color:var(--neon-blue);font-size:.9rem;font-weight:bold;margin-bottom:20px;letter-spacing:3px}
+.top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
+.qr-btn{background:rgba(59,130,246,.2);border:1px solid var(--neon-blue);color:var(--neon-blue);padding:8px 14px;border-radius:20px;font-size:.85rem;font-weight:bold;cursor:pointer}
+.admin-lock-btn{background:transparent;border:1px solid var(--text-muted);color:var(--text-muted);padding:8px 14px;border-radius:20px;font-size:.85rem;cursor:pointer}
+.card{background:var(--card-bg);border:1px solid rgba(168,85,247,.2);border-radius:12px;padding:20px;margin-bottom:20px;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+label{display:block;margin-bottom:8px;color:var(--text-muted);font-size:.9rem}
+input,select{width:100%;padding:12px;border-radius:8px;border:1px solid #374151;background:#1f2937;color:#fff;box-sizing:border-box;margin-bottom:15px;font-size:1rem}
+button.action-btn{width:100%;padding:14px;border:none;border-radius:8px;background:linear-gradient(45deg,var(--neon-purple),var(--neon-blue));color:#fff;font-weight:bold;font-size:1rem;cursor:pointer;box-shadow:0 0 10px rgba(59,130,246,.3)}
+.response-item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px;border-bottom:1px solid #374151}
+.pts-btn{background:#374151;border:none;color:#fff;padding:6px 12px;border-radius:4px;cursor:pointer;margin-left:5px}
+.pts-btn:hover{background:var(--neon-purple)}
+.pts-btn.minus:hover{background:#ef4444}
+.score-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.score-val{font-weight:bold;color:var(--neon-purple);min-width:56px;text-align:center}
+.adjust-box{background:#1f2937;border-radius:10px;padding:14px;margin-bottom:15px}
+.adjust-box input,.adjust-box select{margin-bottom:10px}
+.adjust-btns{display:flex;gap:10px}
+.adjust-btns button{flex:1;padding:12px;border:none;border-radius:8px;color:#fff;font-weight:bold;cursor:pointer}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.85);justify-content:center;align-items:center;flex-direction:column;z-index:1000}
+.modal-content{background:var(--card-bg);padding:25px;border-radius:16px;border:1px solid var(--neon-purple);text-align:center}
+#qrcode{background:#fff;padding:15px;border-radius:12px;display:inline-block;margin:15px 0}
+</style>
 </head>
 <body>
-
 <div class="container">
-    <h1>CHARLEY DUDS</h1>
-    <div class="subtitle">🎵 BLINDTEST DJ PARTY 🎵</div>
+  <h1>CHARLEY DUDS</h1>
+  <div class="subtitle">🎵 BLINDTEST DJ PARTY 🎵</div>
 
-    <div class="top-bar">
-        <button class="qr-btn" onclick="openQRModal()">📱 Afficher QR Code</button>
-        <button class="admin-lock-btn" id="admin-toggle-btn" onclick="openAdminAuth()">🔐 Espace DJ</button>
+  <div class="top-bar">
+    <button class="qr-btn" onclick="openQRModal()">📱 Afficher QR Code</button>
+    <button class="admin-lock-btn" id="admin-toggle-btn" onclick="openAdminAuth()">🔐 Espace DJ</button>
+  </div>
+
+  <div id="view-joueur" class="card">
+    <h2 style="color:var(--neon-blue);margin-top:0;">Rejoindre la partie</h2>
+    <label for="eq-num">Choisissez votre équipe :</label>
+    <select id="eq-num"></select>
+    <label for="answer-input">Votre réponse :</label>
+    <input type="text" id="answer-input" placeholder="Titre / Artiste...">
+    <button class="action-btn" onclick="sendAnswer()">ENVOYER LA RÉPONSE</button>
+    <p id="player-status" style="text-align:center;color:var(--neon-pink);margin-top:15px;font-weight:bold;"></p>
+  </div>
+
+  <div id="view-admin" class="card" style="display:none;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+      <h2 style="color:var(--neon-purple);margin:0;">Espace DJ Organisateur</h2>
+      <button class="pts-btn" onclick="logoutAdmin()">Déconnexion</button>
     </div>
 
-    <!-- INTERFACE JOUEUR -->
-    <div id="view-joueur" class="card">
-        <h2 style="color: var(--neon-blue); margin-top:0;">Rejoindre la partie</h2>
-        
-        <label for="eq-num">Choisissez votre équipe :</label>
-        <select id="eq-num">
-            <!-- Rempli dynamiquement avec 100 animaux insolites sans adjectifs -->
-        </select>
+    <label>Nombre d’équipes actives (de 2 à 100) :</label>
+    <input type="number" id="total-teams" value="12" min="2" max="100" onchange="initTeams()">
 
-        <label for="answer-input">Votre réponse :</label>
-        <input type="text" id="answer-input" placeholder="Titre / Artiste...">
-
-        <button class="action-btn" onclick="sendAnswer()">ENVOYER LA RÉPONSE</button>
-        <p id="player-status" style="text-align: center; color: var(--neon-pink); margin-top: 15px; font-weight: bold;"></p>
+    <div style="display:flex;gap:10px;margin-bottom:15px;">
+      <button class="action-btn" style="background:#ef4444;" onclick="toggleLock()" id="lock-btn">🔒 Fermer réponses</button>
+      <button class="action-btn" onclick="nextQuestion()">➡️ Q. Suivante</button>
     </div>
 
-    <!-- INTERFACE ADMIN (Protégé par code 7314) -->
-    <div id="view-admin" class="card" style="display: none;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h2 style="color: var(--neon-purple); margin:0;">Espace DJ Organisateur</h2>
-            <button class="pts-btn" onclick="logoutAdmin()">Déconnexion</button>
-        </div>
-        
-        <label>Nombre d'équipes actives (de 2 à 100) :</label>
-        <input type="number" id="total-teams" value="12" min="2" max="100" onchange="initTeams()">
+    <h3 style="color:var(--neon-blue);">Réponses reçues (Q<span id="q-num">1</span>)</h3>
+    <div id="responses-list"><p style="color:var(--text-muted);">Aucune réponse envoyée pour l’instant.</p></div>
 
-        <div style="display:flex; gap:10px; margin-bottom: 15px;">
-            <button class="action-btn" style="background:#ef4444;" onclick="toggleLock()" id="lock-btn">🔒 Fermer réponses</button>
-            <button class="action-btn" onclick="nextQuestion()">➡️ Q. Suivante</button>
-        </div>
-
-        <h3 style="color: var(--neon-blue);">Réponses reçues (Q<span id="q-num">1</span>)</h3>
-        <div id="responses-list">
-            <p style="color: var(--text-muted);">Aucune réponse envoyée pour l'instant.</p>
-        </div>
-
-        <h3 style="color: var(--neon-purple); margin-top:25px;">Classement Général (Réservé DJ)</h3>
-        <div id="leaderboard">
-            <!-- Dynamique -->
-        </div>
+    <h3 style="color:var(--neon-purple);margin-top:25px;">Ajuster les points</h3>
+    <div class="adjust-box">
+      <select id="adj-team"></select>
+      <input type="number" id="adj-pts" value="1" min="1" placeholder="Nombre de points">
+      <div class="adjust-btns">
+        <button style="background:#10b981;" onclick="adjustCustom(1)">➕ Ajouter</button>
+        <button style="background:#ef4444;" onclick="adjustCustom(-1)">➖ Retirer</button>
+      </div>
     </div>
+
+    <h3 style="color:var(--neon-purple);">Classement général (réservé DJ)</h3>
+    <div id="leaderboard"></div>
+  </div>
 </div>
 
-<!-- MODAL QR CODE -->
+<div id="pin-modal" class="modal" onclick="closePin()">
+  <div class="modal-content" onclick="event.stopPropagation()" style="width:260px;">
+    <h3 style="color:var(--neon-purple);margin-top:0;">Espace DJ</h3>
+    <input type="password" id="pin-input" inputmode="numeric" placeholder="Code organisateur" onkeydown="if(event.key==='Enter')submitPin()">
+    <p id="pin-error" style="color:#ef4444;font-size:.85rem;min-height:1.2em;margin:0 0 10px;"></p>
+    <button class="action-btn" onclick="submitPin()">Entrer</button>
+  </div>
+</div>
+
 <div id="qr-modal" class="modal" onclick="closeQRModal()">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <h3 style="color: var(--neon-purple); margin-top: 0;">Scannez pour jouer !</h3>
-        <div id="qrcode"></div>
-        <p style="color: var(--text-muted); font-size: 0.85rem;">Cliquez n'importe où pour fermer</p>
-    </div>
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <h3 style="color:var(--neon-purple);margin-top:0;">Scannez pour jouer !</h3>
+    <div id="qrcode"></div>
+    <p style="color:var(--text-muted);font-size:.85rem;">Cliquez n’importe où pour fermer</p>
+  </div>
 </div>
 
 <script>
-    const RARE_ANIMALS = [
-        "Axolotl", "Pangolin", "Quokka", "Narval", "Aye-aye", 
-        "Tarsier", "Okapi", "Capybara", "Fennec", "Serval", 
-        "Saiga", "Dugong", "Manul", "Cassowary", "Kakapo", 
-        "Coelacanthe", "Ocelot", "Glouton", "Caracal", "Wombat", 
-        "Tapir", "Numbat", "Marmotte", "Binturong", "Zorille", 
-        "Tenrec", "Kinkajou", "Chinchilla", "Eclectus", "Gecko", 
-        "Iguane", "Chameau", "Dromadaire", "Suricate", "Tamandua", 
-        "Alpaga", "Guanaco", "Vigogne", "Bison", "Élan", 
-        "Caribou", "Lynx", "Desman", "Civette", "Genette", 
-        "Mangouste", "Pika", "Porc-épic", "Pangolin", "Échidné", 
-        "Ornithorynque", "Babiroussa", "Maki", "Sifaka", "Indri", 
-        "Galago", "Loris", "Potto", "Gibbon", "Tamarin", 
-        "Saïmiri", "Ouistiti", "Uakari", "Saki", "Douroucouli", 
-        "Nageur", "Nautile", "Axolotl", "Blobfish", "Tardigrade", 
-        "Blob", "Bélouga", "O Narval", "Orque", "Dauphin", 
-        "Manche", "Gorfou", "Macareux", "Albatros", "Fou", 
-        "Frégate", "Spatule", "Ibis", "Flamant", "Marabout", 
-        "Jabiru", "Cariama", "Hoazin", "Trogon", "Quetzal", 
-        "Momot", "Guêpier", "Martin", "Toucan", "Ara", 
-        "Conure", "Lori", "Kakatoès", "Calao", "Iguane", "Condor"
-    ];
+const TEAM_NAMES = [
+"Les Axolotls","Les Pangolins","Les Quokkas","Les Narvals","Les Ornithorynques","Les Capybaras","Les Wombats","Les Tardigrades","Les Ratons Laveurs","Les Paresseux",
+"Les Lamantins","Les Suricates","Les Fennecs","Les Kakapos","Les Aye-ayes","Les Tarsiers","Les Okapis","Les Tapirs","Les Babiroussas","Les Macareux",
+"Les Manchots","Les Flamants Roses","Les Pélicans","Les Toucans","Les Perroquets","Les Cacatoès","Les Kiwis","Les Casoars","Les Émeus","Les Autruches",
+"Les Dodos","Les Hérissons","Les Blaireaux","Les Ouistitis","Les Gibbons","Les Lémuriens","Les Mandrills","Les Orangs-outans","Les Koalas","Les Kangourous",
+"Les Diables de Tasmanie","Les Échidnés","Les Numbats","Les Dugongs","Les Hippocampes","Les Méduses","Les Poulpes","Les Calmars","Les Crabes","Les Homards",
+"Les Cloportes","Les Scarabées","Les Coccinelles","Les Escargots","Les Limaces","Les Grenouilles","Les Crapauds","Les Salamandres","Les Caméléons","Les Geckos",
+"Les Iguanes","Les Tortues","Les Dragons de Komodo","Les Chameaux","Les Dromadaires","Les Lamas","Les Alpagas","Les Chèvres","Les Moutons","Les Cochons",
+"Les Canards","Les Oies","Les Dindons","Les Poules","Les Coqs","Les Pigeons","Les Hiboux","Les Chouettes","Les Vautours","Les Marmottes",
+"Les Hamsters","Les Chinchillas","Les Gerbilles","Les Cobayes","Les Furets","Les Loutres","Les Castors","Les Phoques","Les Otaries","Les Morses",
+"Les Bisons","Les Yaks","Les Gnous","Les Zèbres","Les Girafes","Les Hyènes","Les Mangoustes","Les Porcs-épics","Les Pandas Roux","Les Ânes"
+];
 
-    const ADMIN_PIN = "7314";
-    let currentQuestion = 1;
-    let responses = [];
-    let scores = {};
-    let isLocked = false;
-    let isAdminLoggedIn = false;
+const ADMIN_PIN = "7314";
+let currentQuestion = 1;
+let responses = [];
+let scores = {};
+let isLocked = false;
+let isAdminLoggedIn = false;
 
-    function initTeams() {
-        const count = Math.min(100, Math.max(2, parseInt(document.getElementById('total-teams').value) || 12));
-        const select = document.getElementById('eq-num');
-        select.innerHTML = '';
-        scores = {};
-        for (let i = 0; i < count; i++) {
-            const animalName = RARE_ANIMALS[i] || `Animal ${i+1}`;
-            const teamName = `Les ${animalName}s`;
-            select.innerHTML += `<option value="${teamName}">${teamName}</option>`;
-            scores[teamName] = 0;
-        }
-        updateLeaderboard();
-    }
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-    function openAdminAuth() {
-        if(isAdminLoggedIn) {
-            toggleAdminView();
-            return;
-        }
-        const pin = prompt("Entrez le mot de passe Organisateur :");
-        if(pin === ADMIN_PIN) {
-            isAdminLoggedIn = true;
-            document.getElementById('admin-toggle-btn').innerText = "🎧 Accès Dashboard";
-            toggleAdminView();
-        } else if(pin !== null) {
-            alert("Code incorrect !");
-        }
-    }
+function initTeams() {
+  const count = Math.min(100, Math.max(2, parseInt(document.getElementById('total-teams').value) || 12));
+  document.getElementById('total-teams').value = count;
+  const names = TEAM_NAMES.slice(0, count);
+  const newScores = {};
+  names.forEach(n => newScores[n] = scores[n] || 0);
+  scores = newScores;
 
-    function toggleAdminView() {
-        document.getElementById('view-joueur').style.display = 'none';
-        document.getElementById('view-admin').style.display = 'block';
-    }
+  const opts = names.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+  const playerSel = document.getElementById('eq-num');
+  const adjSel = document.getElementById('adj-team');
+  const prevPlayer = playerSel.value, prevAdj = adjSel.value;
+  playerSel.innerHTML = opts;
+  adjSel.innerHTML = opts;
+  if (names.includes(prevPlayer)) playerSel.value = prevPlayer;
+  if (names.includes(prevAdj)) adjSel.value = prevAdj;
+  updateLeaderboard();
+}
 
-    function logoutAdmin() {
-        isAdminLoggedIn = false;
-        document.getElementById('admin-toggle-btn').innerText = "🔐 Espace DJ";
-        document.getElementById('view-joueur').style.display = 'block';
-        document.getElementById('view-admin').style.display = 'none';
-    }
+function openAdminAuth() {
+  if (isAdminLoggedIn) { toggleAdminView(); return; }
+  document.getElementById('pin-input').value = '';
+  document.getElementById('pin-error').innerText = '';
+  document.getElementById('pin-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('pin-input').focus(), 50);
+}
 
-    function sendAnswer() {
-        if(isLocked) {
-            alert('Les réponses sont fermées pour cette question !');
-            return;
-        }
-        const team = document.getElementById('eq-num').value;
-        const text = document.getElementById('answer-input').value.trim();
-        if(!text) return;
+function submitPin() {
+  if (document.getElementById('pin-input').value === ADMIN_PIN) {
+    isAdminLoggedIn = true;
+    document.getElementById('admin-toggle-btn').innerText = "🎧 Accès Dashboard";
+    closePin();
+    toggleAdminView();
+  } else {
+    document.getElementById('pin-error').innerText = 'Code incorrect.';
+  }
+}
 
-        const existing = responses.find(r => r.team === team && r.q === currentQuestion);
-        if(existing) {
-            document.getElementById('player-status').innerText = '❌ Une seule réponse autorisée par question !';
-            return;
-        }
+function closePin() { document.getElementById('pin-modal').style.display = 'none'; }
 
-        responses.push({ team, text, q: currentQuestion });
-        document.getElementById('player-status').innerText = `✅ Réponse envoyée pour ${team} !`;
-        document.getElementById('answer-input').value = '';
-        renderResponses();
-    }
+function toggleAdminView() {
+  document.getElementById('view-joueur').style.display = 'none';
+  document.getElementById('view-admin').style.display = 'block';
+}
 
-    function renderResponses() {
-        const list = document.getElementById('responses-list');
-        const qResponses = responses.filter(r => r.q === currentQuestion);
-        if(qResponses.length === 0) {
-            list.innerHTML = `<p style="color: var(--text-muted);">Aucune réponse reçue.</p>`;
-            return;
-        }
-        list.innerHTML = qResponses.map(r => `
-            <div class="response-item">
-                <div><strong>${r.team}</strong> : ${r.text}</div>
-                <div>
-                    <button class="pts-btn" onclick="addPoints('${r.team}', 1)">+1 pt</button>
-                    <button class="pts-btn" onclick="addPoints('${r.team}', 2)">+2 pts</button>
-                </div>
-            </div>
-        `).join('');
-    }
+function logoutAdmin() {
+  isAdminLoggedIn = false;
+  document.getElementById('admin-toggle-btn').innerText = "🔐 Espace DJ";
+  document.getElementById('view-joueur').style.display = 'block';
+  document.getElementById('view-admin').style.display = 'none';
+}
 
-    function addPoints(team, pts) {
-        scores[team] = (scores[team] || 0) + pts;
-        updateLeaderboard();
-    }
+function sendAnswer() {
+  if (isLocked) { document.getElementById('player-status').innerText = '🔒 Les réponses sont fermées pour cette question.'; return; }
+  const team = document.getElementById('eq-num').value;
+  const text = document.getElementById('answer-input').value.trim();
+  if (!text) return;
+  if (responses.find(r => r.team === team && r.q === currentQuestion)) {
+    document.getElementById('player-status').innerText = '❌ Une seule réponse autorisée par question !';
+    return;
+  }
+  responses.push({ team, text, q: currentQuestion });
+  document.getElementById('player-status').innerText = `✅ Réponse envoyée pour ${team} !`;
+  document.getElementById('answer-input').value = '';
+  renderResponses();
+}
 
-    function updateLeaderboard() {
-        const board = document.getElementById('leaderboard');
-        const sorted = Object.entries(scores).sort((a,b) => b[1] - a[1]);
-        board.innerHTML = sorted.map(([team, score]) => `
-            <div class="score-row">
-                <span>${team}</span>
-                <span style="font-weight:bold; color:var(--neon-purple);">${score} pts</span>
-            </div>
-        `).join('');
-    }
+function renderResponses() {
+  const list = document.getElementById('responses-list');
+  const qResponses = responses.filter(r => r.q === currentQuestion);
+  if (qResponses.length === 0) {
+    list.innerHTML = `<p style="color:var(--text-muted);">Aucune réponse reçue.</p>`;
+    return;
+  }
+  list.innerHTML = qResponses.map(r => `
+    <div class="response-item">
+      <div><strong>${esc(r.team)}</strong> : ${esc(r.text)}</div>
+      <div style="white-space:nowrap;">
+        <button class="pts-btn minus" onclick="addPoints(this.dataset.t, -1)" data-t="${esc(r.team)}">−1</button>
+        <button class="pts-btn" onclick="addPoints(this.dataset.t, 1)" data-t="${esc(r.team)}">+1</button>
+        <button class="pts-btn" onclick="addPoints(this.dataset.t, 2)" data-t="${esc(r.team)}">+2</button>
+      </div>
+    </div>`).join('');
+}
 
-    function toggleLock() {
-        isLocked = !isLocked;
-        const btn = document.getElementById('lock-btn');
-        btn.innerText = isLocked ? '🔓 Ouvrir réponses' : '🔒 Fermer réponses';
-        btn.style.background = isLocked ? '#10b981' : '#ef4444';
-    }
+function addPoints(team, pts) {
+  if (!(team in scores)) return;
+  scores[team] += pts;
+  updateLeaderboard();
+}
 
-    function nextQuestion() {
-        currentQuestion++;
-        document.getElementById('q-num').innerText = currentQuestion;
-        isLocked = false;
-        document.getElementById('lock-btn').innerText = '🔒 Fermer réponses';
-        document.getElementById('lock-btn').style.background = '#ef4444';
-        document.getElementById('player-status').innerText = '';
-        renderResponses();
-    }
+function adjustCustom(sign) {
+  const team = document.getElementById('adj-team').value;
+  const pts = parseInt(document.getElementById('adj-pts').value);
+  if (!team || !pts || pts < 1) { document.getElementById('adj-pts').value = 1; return; }
+  addPoints(team, sign * pts);
+}
 
-    function openQRModal() {
-        document.getElementById('qr-modal').style.display = 'flex';
-        document.getElementById('qrcode').innerHTML = '';
-        new QRCode(document.getElementById('qrcode'), {
-            text: window.location.href,
-            width: 200,
-            height: 200
-        });
-    }
+function updateLeaderboard() {
+  const board = document.getElementById('leaderboard');
+  const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+  board.innerHTML = sorted.map(([team, score]) => `
+    <div class="score-row">
+      <span style="flex:1;">${esc(team)}</span>
+      <button class="pts-btn minus" onclick="addPoints(this.dataset.t, -1)" data-t="${esc(team)}">−1</button>
+      <span class="score-val">${score} pts</span>
+      <button class="pts-btn" onclick="addPoints(this.dataset.t, 1)" data-t="${esc(team)}">+1</button>
+    </div>`).join('');
+}
 
-    function closeQRModal() {
-        document.getElementById('qr-modal').style.display = 'none';
-    }
+function toggleLock() {
+  isLocked = !isLocked;
+  const btn = document.getElementById('lock-btn');
+  btn.innerText = isLocked ? '🔓 Ouvrir réponses' : '🔒 Fermer réponses';
+  btn.style.background = isLocked ? '#10b981' : '#ef4444';
+}
 
-    initTeams();
+function nextQuestion() {
+  currentQuestion++;
+  document.getElementById('q-num').innerText = currentQuestion;
+  isLocked = false;
+  document.getElementById('lock-btn').innerText = '🔒 Fermer réponses';
+  document.getElementById('lock-btn').style.background = '#ef4444';
+  document.getElementById('player-status').innerText = '';
+  renderResponses();
+}
+
+function openQRModal() {
+  document.getElementById('qr-modal').style.display = 'flex';
+  document.getElementById('qrcode').innerHTML = '';
+  new QRCode(document.getElementById('qrcode'), { text: window.location.href, width: 200, height: 200 });
+}
+
+function closeQRModal() { document.getElementById('qr-modal').style.display = 'none'; }
+
+initTeams();
 </script>
 </body>
 </html>
