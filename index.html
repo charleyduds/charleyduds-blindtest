@@ -10,6 +10,7 @@
       --card-bg: #1e293b;
       --accent-blue: #0284c7;
       --accent-orange: #ea580c;
+      --accent-green: #10b981;
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
       --border-color: #334155;
@@ -143,7 +144,7 @@
       background-color: var(--card-bg);
       border-radius: 12px;
       padding: 2rem;
-      max-width: 600px;
+      max-width: 800px;
       width: 100%;
       max-height: 90vh;
       overflow-y: auto;
@@ -177,14 +178,15 @@
 
     .score-controls {
       display: flex;
-      gap: 0.5rem;
+      gap: 0.35rem;
       align-items: center;
+      flex-wrap: wrap;
     }
 
     .score-input {
-      width: 70px !important;
+      width: 65px !important;
       margin-bottom: 0 !important;
-      padding: 0.4rem !important;
+      padding: 0.35rem !important;
       text-align: center;
     }
 
@@ -199,17 +201,44 @@
     }
 
     .btn-quick {
-      background-color: var(--border-color);
-      color: var(--text-main);
+      background-color: var(--accent-blue);
+      color: white;
       border: none;
       padding: 0.4rem 0.5rem;
       border-radius: 4px;
       cursor: pointer;
       font-size: 0.85rem;
+      font-weight: 600;
     }
 
     .btn-quick:hover {
       background-color: var(--accent-orange);
+    }
+
+    .btn-minus {
+      background-color: #ef4444;
+      color: white;
+      border: none;
+      padding: 0.4rem 0.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .btn-minus:hover {
+      background-color: #dc2626;
+    }
+
+    .btn-clear {
+      background-color: #ef4444;
+      color: white;
+      border: none;
+      padding: 0.4rem 0.8rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      float: right;
     }
 
     .qr-container {
@@ -219,6 +248,18 @@
       background: white;
       border-radius: 8px;
       display: inline-block;
+    }
+
+    .answer-badge {
+      background: #0f172a;
+      border: 1px solid var(--accent-blue);
+      padding: 0.6rem;
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
     }
 
     .hidden {
@@ -288,14 +329,23 @@
       <div id="dj-dashboard" class="hidden">
         <h2>🎛️ Panneau de Contrôle DJ</h2>
 
-        <!-- Gestion libre des points -->
-        <h3 style="margin-top: 1.5rem; color: var(--accent-orange); font-size: 1rem;">Attribution / Ajustement des points</h3>
+        <!-- Section 1 : Réponses reçues en direct -->
+        <div style="margin-top: 1.5rem;">
+          <button class="btn-clear" onclick="clearAnswers()">Effacer les réponses</button>
+          <h3 style="color: var(--accent-orange); font-size: 1.1rem; margin-bottom: 0.5rem;">📥 Réponses reçues des équipes</h3>
+          <div id="answers-feed" style="max-height: 220px; overflow-y: auto; background: #0f172a; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border-color);">
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Aucune réponse reçue pour l'instant...</p>
+          </div>
+        </div>
+
+        <!-- Section 2 : Tableau des scores et attribution -->
+        <h3 style="margin-top: 2rem; color: var(--accent-blue); font-size: 1.1rem;">📊 Tableau des scores & Ajustement</h3>
         <table id="dj-leaderboard">
           <thead>
             <tr>
               <th>Équipe</th>
               <th>Pts actuels</th>
-              <th>Attribuer / Modifier</th>
+              <th>Actions rapide / Saisie</th>
             </tr>
           </thead>
           <tbody>
@@ -303,9 +353,8 @@
           </tbody>
         </table>
 
-        <!-- QR Code direct -->
+        <!-- Section 3 : QR Code direct -->
         <h3 style="margin-top: 2rem; color: var(--accent-orange); font-size: 1rem;">QR Code pour le public</h3>
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">À afficher sur écran ou imprimer pour les tables.</p>
         <div style="text-align: center;">
           <div class="qr-container" id="qrcode"></div>
         </div>
@@ -314,20 +363,17 @@
   </div>
 
   <script>
-    // Mot de passe DJ
     const ADMIN_PASS = "7314";
 
-    // Liste des équipes (Animaux rares/originaux)
     const teamsList = [
       "Les Axolotls Rapides", "Les Narvals du Funk", "Les Pangolins Groove", "Les Quokkas Joyeux",
       "Les Tardigrades Invincibles", "Les Capybaras Zen", "Les Cassowary Rock", "Les Okapis Jazz",
       "Les Servals Disco", "Les Kakapos Chanteurs", "Les Fennecs Electros", "Les Dholes Rythmés"
     ];
 
-    // Initialisation des scores
     let scores = JSON.parse(localStorage.getItem('blindtest_scores')) || {};
+    let answersLog = JSON.parse(localStorage.getItem('blindtest_answers')) || [];
 
-    // Initialiser les équipes si vide
     teamsList.forEach(team => {
       if (scores[team] === undefined) {
         scores[team] = 0;
@@ -339,7 +385,12 @@
       renderLeaderboards();
     }
 
-    // Charger les options d'équipes
+    function saveAnswers() {
+      localStorage.setItem('blindtest_answers', JSON.stringify(answersLog));
+      renderAnswersFeed();
+    }
+
+    // Remplir le menu déroulant
     const selectElem = document.getElementById('team-select');
     teamsList.forEach(team => {
       const opt = document.createElement('option');
@@ -348,7 +399,7 @@
       selectElem.appendChild(opt);
     });
 
-    // Envoi de réponse par un joueur
+    // Quand un joueur envoie une réponse
     function submitAnswer(e) {
       e.preventDefault();
       const team = document.getElementById('team-select').value;
@@ -356,12 +407,53 @@
 
       if (!team || !answer) return;
 
+      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      answersLog.unshift({ team, answer, time });
+
+      saveAnswers();
       alert(`Réponse envoyée pour "${team}" !
 Le DJ valide les points dans son espace.`);
       document.getElementById('player-answer').value = '';
     }
 
-    // Afficher les classements
+    // Afficher le flux des réponses dans l'espace DJ
+    function renderAnswersFeed() {
+      const feed = document.getElementById('answers-feed');
+      if (!feed) return;
+
+      if (answersLog.length === 0) {
+        feed.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem;">Aucune réponse reçue pour l'instant...</p>';
+        return;
+      }
+
+      feed.innerHTML = '';
+      answersLog.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'answer-badge';
+        div.innerHTML = `
+          <div>
+            <span style="color: var(--accent-orange); font-size: 0.8rem;">[${item.time}]</span>
+            <strong style="color: var(--accent-blue); margin-left: 0.3rem;">${item.team}</strong> :
+            <span style="color: #fff; margin-left: 0.3rem; font-weight: bold;">"${item.answer}"</span>
+          </div>
+          <div class="score-controls">
+            <button class="btn-minus" onclick="addPoints('${item.team}', -1)">-1</button>
+            <button class="btn-quick" onclick="addPoints('${item.team}', 1)">+1</button>
+            <button class="btn-quick" onclick="addPoints('${item.team}', 2)">+2</button>
+          </div>
+        `;
+        feed.appendChild(div);
+      });
+    }
+
+    function clearAnswers() {
+      if (confirm("Effacer tout l'historique des réponses reçues ?")) {
+        answersLog = [];
+        saveAnswers();
+      }
+    }
+
+    // Afficher le classement public & DJ
     function renderLeaderboards() {
       const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
 
@@ -373,12 +465,12 @@ Le DJ valide les points dans son espace.`);
         tr.innerHTML = `
           <td>${index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}</td>
           <td><strong>${team}</strong></td>
-          <td>${pts} pt${pts > 1 ? 's' : ''}</td>
+          <td>${pts} pt${pts > 1 || pts < -1 ? 's' : ''}</td>
         `;
         publicTbody.appendChild(tr);
       });
 
-      // Admin DJ (Avec attribution libre des points)
+      // DJ
       const djTbody = document.querySelector('#dj-leaderboard tbody');
       if (djTbody) {
         djTbody.innerHTML = '';
@@ -389,11 +481,11 @@ Le DJ valide les points dans son espace.`);
             <td style="color: var(--accent-orange); font-weight: bold;">${pts}</td>
             <td>
               <div class="score-controls">
-                <input type="number" step="0.5" class="score-input" id="input-${idSafe(team)}" placeholder="Ex: 1">
-                <button class="btn-pts" onclick="addCustomPoints('${team}')">Ajouter</button>
+                <button class="btn-minus" onclick="addPoints('${team}', -1)">-1</button>
                 <button class="btn-quick" onclick="addPoints('${team}', 1)">+1</button>
                 <button class="btn-quick" onclick="addPoints('${team}', 2)">+2</button>
-                <button class="btn-quick" onclick="addPoints('${team}', 3)">+3</button>
+                <input type="number" step="0.5" class="score-input" id="input-${idSafe(team)}" placeholder="+/-">
+                <button class="btn-pts" onclick="addCustomPoints('${team}')">OK</button>
               </div>
             </td>
           `;
@@ -406,23 +498,21 @@ Le DJ valide les points dans son espace.`);
       return str.replace(/[^a-zA-Z0-9]/g, '_');
     }
 
-    // Ajouter des points rapides (+1, +2, etc.)
     function addPoints(team, amount) {
       scores[team] = (scores[team] || 0) + amount;
       saveScores();
     }
 
-    // Saisie libre du nombre de points
     function addCustomPoints(team) {
       const input = document.getElementById(`input-${idSafe(team)}`);
       const val = parseFloat(input.value);
       if (!isNaN(val)) {
         scores[team] = (scores[team] || 0) + val;
         saveScores();
+        input.value = '';
       }
     }
 
-    // Gestion Modal DJ
     function openDjModal() {
       document.getElementById('dj-modal').style.display = 'flex';
     }
@@ -437,13 +527,13 @@ Le DJ valide les points dans son espace.`);
         document.getElementById('dj-login').classList.add('hidden');
         document.getElementById('dj-dashboard').classList.remove('hidden');
         renderLeaderboards();
+        renderAnswersFeed();
         generateQrCode();
       } else {
         alert("Mot de passe incorrect.");
       }
     }
 
-    // Génération du QR Code automatique vers le lien de la page
     let qrGenerated = false;
     function generateQrCode() {
       if (qrGenerated) return;
@@ -459,7 +549,6 @@ Le DJ valide les points dans son espace.`);
       qrGenerated = true;
     }
 
-    // Premier affichage au chargement
     renderLeaderboards();
   </script>
 </body>
