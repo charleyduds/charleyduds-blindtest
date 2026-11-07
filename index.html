@@ -390,14 +390,16 @@
       renderAnswersFeed();
     }
 
-    // Remplir le menu déroulant
+    // Charger les options d'équipes dans le menu déroulant au démarrage
     const selectElem = document.getElementById('team-select');
-    teamsList.forEach(team => {
-      const opt = document.createElement('option');
-      opt.value = team;
-      opt.textContent = team;
-      selectElem.appendChild(opt);
-    });
+    if (selectElem) {
+      teamsList.forEach(team => {
+        const opt = document.createElement('option');
+        opt.value = team;
+        opt.textContent = team;
+        selectElem.appendChild(opt);
+      });
+    }
 
     // Quand un joueur envoie une réponse
     function submitAnswer(e) {
@@ -412,7 +414,7 @@
 
       saveAnswers();
       alert(`Réponse envoyée pour "${team}" !
-Le DJ valide les points dans son espace.`);
+Le DJ l'a reçue dans son espace.`);
       document.getElementById('player-answer').value = '';
     }
 
@@ -459,16 +461,18 @@ Le DJ valide les points dans son espace.`);
 
       // Public
       const publicTbody = document.querySelector('#public-leaderboard tbody');
-      publicTbody.innerHTML = '';
-      sorted.forEach(([team, pts], index) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}</td>
-          <td><strong>${team}</strong></td>
-          <td>${pts} pt${pts > 1 || pts < -1 ? 's' : ''}</td>
-        `;
-        publicTbody.appendChild(tr);
-      });
+      if (publicTbody) {
+        publicTbody.innerHTML = '';
+        sorted.forEach(([team, pts], index) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}</td>
+            <td><strong>${team}</strong></td>
+            <td>${pts} pt${pts > 1 || pts < -1 ? 's' : ''}</td>
+          `;
+          publicTbody.appendChild(tr);
+        });
+      }
 
       // DJ
       const djTbody = document.querySelector('#dj-leaderboard tbody');
@@ -538,17 +542,21 @@ Le DJ valide les points dans son espace.`);
     function generateQrCode() {
       if (qrGenerated) return;
       const url = window.location.href;
-      new QRCode(document.getElementById("qrcode"), {
-        text: url,
-        width: 160,
-        height: 160,
-        colorDark : "#0f172a",
-        colorLight : "#ffffff",
-        correctLevel : QRCode.CorrectLevel.H
-      });
-      qrGenerated = true;
+      const qrContainer = document.getElementById("qrcode");
+      if (qrContainer && typeof QRCode !== 'undefined') {
+        new QRCode(qrContainer, {
+          text: url,
+          width: 160,
+          height: 160,
+          colorDark : "#0f172a",
+          colorLight : "#ffffff",
+          correctLevel : QRCode.CorrectLevel.H
+        });
+        qrGenerated = true;
+      }
     }
 
+    // Chargement initial des tableaux
     renderLeaderboards();
   </script>
 </body>
