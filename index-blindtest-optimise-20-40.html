@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>CHARLEY DUDS BLINDTEST</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
+<style>
+:root{--bg-dark:#0a0a12;--card-bg:#141424;--neon-purple:#a855f7;--neon-blue:#3b82f6;--neon-pink:#ec4899;--text-light:#f3f4f6;--text-muted:#9ca3af;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:var(--bg-dark);color:var(--text-light);margin:0;padding:15px;display:flex;flex-direction:column;align-items:center}
+.container{width:100%;max-width:500px}
+h1{text-align:center;font-size:1.8rem;color:var(--neon-purple);text-shadow:0 0 10px rgba(168,85,247,.5);margin-bottom:5px;text-transform:uppercase;letter-spacing:2px}
+.subtitle{text-align:center;color:var(--neon-blue);font-size:.9rem;font-weight:bold;margin-bottom:20px;letter-spacing:3px}
+.top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
+.qr-btn{background:rgba(59,130,246,.2);border:1px solid var(--neon-blue);color:var(--neon-blue);padding:8px 14px;border-radius:20px;font-size:.85rem;font-weight:bold;cursor:pointer}
+.admin-lock-btn{background:transparent;border:1px solid var(--text-muted);color:var(--text-muted);padding:8px 14px;border-radius:20px;font-size:.85rem;cursor:pointer}
+.card{background:var(--card-bg);border:1px solid rgba(168,85,247,.2);border-radius:12px;padding:20px;margin-bottom:20px;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+label{display:block;margin-bottom:8px;color:var(--text-muted);font-size:.9rem}
+input{width:100%;padding:12px;border-radius:8px;border:1px solid #374151;background:#1f2937;color:#fff;box-sizing:border-box;margin-bottom:15px;font-size:1rem}
+button.action-btn{width:100%;padding:14px;border:none;border-radius:8px;background:linear-gradient(45deg,var(--neon-purple),var(--neon-blue));color:#fff;font-weight:bold;font-size:1rem;cursor:pointer;box-shadow:0 0 10px rgba(59,130,246,.3)}
+.danger-btn{width:100%;padding:12px;border:1px solid #ef4444;background:transparent;color:#ef4444;border-radius:8px;font-weight:bold;cursor:pointer}
+.response-item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px;border-bottom:1px solid #374151}
+.pts-btn{background:#374151;border:none;color:#fff;padding:6px 12px;border-radius:4px;cursor:pointer;margin-left:5px}
+.pts-btn:hover{background:var(--neon-purple)}
+.pts-btn.minus:hover{background:#ef4444}
+.score-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.score-val{font-weight:bold;color:var(--neon-purple);min-width:56px;text-align:center}
+.hint{font-size:.85rem;color:var(--text-muted);margin:0 0 12px}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.85);justify-content:center;align-items:center;flex-direction:column;z-index:1000}
+.modal-content{background:var(--card-bg);padding:25px;border-radius:16px;border:1px solid var(--neon-purple);text-align:center;max-width:300px}
+#qrcode{background:#fff;padding:15px;border-radius:12px;display:inline-block;margin:15px 0}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>CHARLEY DUDS</h1>
+  <div class="subtitle">🎵 BLINDTEST DJ PARTY 🎵</div>
+
+  <div class="top-bar">
+    <button class="qr-btn" onclick="openQRModal()">📱 Afficher QR Code</button>
+    <button class="admin-lock-btn" id="admin-toggle-btn" onclick="openAdminAuth()">🔐 Espace DJ</button>
+  </div>
+
+  <div id="view-joueur" class="card">
+    <h2 style="color:var(--neon-blue);margin-top:0;">Rejoindre la partie</h2>
+    <p id="conn-status" class="hint">⏳ Connexion au DJ…</p>
+
+    <div id="reg-box" style="display:none;">
+      <label for="team-name">Nom de votre équipe :</label>
+      <input type="text" id="team-name" maxlength="24" placeholder="Ex : Les Ornithorynques" onkeydown="if(event.key==='Enter')registerTeam()">
+      <p class="hint">Attention : une fois enregistré, le nom ne peut plus être changé jusqu’à la fin de la partie.</p>
+      <button class="action-btn" onclick="registerTeam()">ENREGISTRER MON ÉQUIPE</button>
+      <p id="reg-status" style="text-align:center;color:var(--neon-pink);margin-top:15px;font-weight:bold;"></p>
+    </div>
+
+    <div id="answer-box" style="display:none;">
+      <p id="my-team" style="font-weight:bold;color:var(--neon-purple);font-size:1.1rem;margin:0 0 15px;"></p>
+      <label for="answer-input">Votre réponse :</label>
+      <input type="text" id="answer-input" placeholder="Titre / Artiste..." onkeydown="if(event.key==='Enter')sendAnswer()">
+      <button class="action-btn" onclick="sendAnswer()">ENVOYER LA RÉPONSE</button>
+      <p id="player-status" style="text-align:center;color:var(--neon-pink);margin-top:15px;font-weight:bold;"></p>
+    </div>
+  </div>
+
+  <div id="view-admin" class="card" style="display:none;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+      <h2 style="color:var(--neon-purple);margin:0;">Espace DJ Organisateur</h2>
+      <button class="pts-btn" onclick="logoutAdmin()">Déconnexion</button>
+    </div>
+
+    <p id="host-status" class="hint"></p>
+
+    <p class="hint">👥 Inscriptions ouvertes : pas de limite artificielle au nombre d’équipes.</p>
+
+    <div style="display:flex;gap:10px;margin-bottom:15px;">
+      <button class="action-btn" style="background:#ef4444;" onclick="toggleLock()" id="lock-btn">🔒 Fermer réponses</button>
+      <button class="action-btn" onclick="nextQuestion()">➡️ Q. Suivante</button>
+    </div>
+
+    <h3 style="color:var(--neon-blue);">Réponses reçues (Q<span id="q-num">1</span>)</h3>
+    <div id="responses-list"></div>
+
+    <h3 style="color:var(--neon-purple);margin-top:25px;">Classement général (<span id="team-count">0 équipes</span>)</h3>
+    <div id="leaderboard"></div>
+
+    <div style="margin-top:30px;">
+      <button class="danger-btn" onclick="openReset()">🗑️ Réinitialiser la partie</button>
+    </div>
+  </div>
+</div>
+
+<div id="pin-modal" class="modal" onclick="closePin()">
+  <div class="modal-content" onclick="event.stopPropagation()" style="width:260px;">
+    <h3 style="color:var(--neon-purple);margin-top:0;">Espace DJ</h3>
+    <input type="password" id="pin-input" inputmode="numeric" placeholder="Code organisateur" onkeydown="if(event.key==='Enter')submitPin()">
+    <p id="pin-error" style="color:#ef4444;font-size:.85rem;min-height:1.2em;margin:0 0 10px;"></p>
+    <button class="action-btn" onclick="submitPin()">Entrer</button>
+  </div>
+</div>
+
+<div id="reset-modal" class="modal" onclick="closeReset()">
+  <div class="modal-content" onclick="event.stopPropagation()" style="border-color:#ef4444;">
+    <h3 style="color:#ef4444;margin-top:0;">Réinitialiser la partie ?</h3>
+    <p class="hint">Toutes les équipes, les scores et les réponses seront effacés. Les joueurs devront choisir un nouveau nom d’équipe.</p>
+    <input type="text" id="reset-input" placeholder="Tapez RESET pour confirmer" autocomplete="off" onkeydown="if(event.key==='Enter')confirmReset()">
+    <p id="reset-error" style="color:#ef4444;font-size:.85rem;min-height:1.2em;margin:0 0 10px;"></p>
+    <div style="display:flex;gap:10px;">
+      <button class="pts-btn" style="flex:1;margin:0;padding:12px;" onclick="closeReset()">Annuler</button>
+      <button class="pts-btn" style="flex:1;margin:0;padding:12px;background:#ef4444;" onclick="confirmReset()">Réinitialiser</button>
+    </div>
+  </div>
+</div>
+
+<div id="qr-modal" class="modal" onclick="closeQRModal()">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <h3 style="color:var(--neon-purple);margin-top:0;">Scannez pour jouer !</h3>
+    <div id="qrcode"></div>
+    <p class="hint">Cliquez n’importe où pour fermer</p>
+  </div>
+</div>
+
+<script>
+const ADMIN_PIN = "7314";
+const HOST_ID = 'charleyduds-blindtest-7314-dj';
+const STORE_KEY = 'cdbt-state-v1';
+const TOKEN_KEY = 'cdbt-token';
+
+let teams = [];          // { id, name, token, score }
+let responses = [];      // { tid, text, q }
+let nextId = 1, currentQuestion = 1, isLocked = false;
+let isAdminLoggedIn = false;
+const clients = new Set();
+let hostPeer = null, playerPeer = null, conn = null, retryTimer = null;
+let hostMode = false, hostRetries = 0, playerGen = 0, lastQ = 0, myToken = '';
+let retryAttempt = 0, connectTimer = null;
+const clientByToken = new Map();
+
+// STUN aide à établir les connexions directes. Il ne remplace pas un TURN
+// sur les réseaux qui interdisent les connexions WebRTC directes.
+const PEER_OPTIONS = {
+  debug: 1,
+  config: {
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' }
+    ],
+    iceCandidatePoolSize: 4
+  }
+};
+
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function teamById(id) { return teams.find(t => t.id === id); }
+
+/* ---------- Sauvegarde (sur le téléphone du DJ) ---------- */
+function saveState() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify({ teams, responses, nextId, currentQuestion, isLocked })); } catch (e) {}
+}
+function loadState() {
+  try {
+    const d = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
+    if (!d) return;
+    teams = Array.isArray(d.teams) ? d.teams : [];
+    responses = Array.isArray(d.responses) ? d.responses : [];
+    nextId = d.nextId || teams.length + 1;
+    currentQuestion = d.currentQuestion || 1;
+    isLocked = !!d.isLocked;
+  } catch (e) {}
+}
+function getToken() {
+  let t = '';
+  try { t = localStorage.getItem(TOKEN_KEY) || ''; } catch (e) {}
+  if (!t) {
+    t = Array.from(crypto.getRandomValues(new Uint8Array(12)), b => b.toString(16).padStart(2, '0')).join('');
+    try { localStorage.setItem(TOKEN_KEY, t); } catch (e) {}
+  }
+  return t;
+}
+
+/* ---------- Espace DJ ---------- */
+function renderAll() {
+  renderResponses(); updateLeaderboard(); renderLock();
+  document.getElementById('q-num').innerText = currentQuestion;
+}
+
+function openAdminAuth() {
+  if (isAdminLoggedIn) { toggleAdminView(); return; }
+  document.getElementById('pin-input').value = '';
+  document.getElementById('pin-error').innerText = '';
+  document.getElementById('pin-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('pin-input').focus(), 50);
+}
+function submitPin() {
+  if (document.getElementById('pin-input').value === ADMIN_PIN) {
+    isAdminLoggedIn = true;
+    document.getElementById('admin-toggle-btn').innerText = "🎧 Accès Dashboard";
+    closePin(); toggleAdminView(); startHost();
+  } else { document.getElementById('pin-error').innerText = 'Code incorrect.'; }
+}
+function closePin() { document.getElementById('pin-modal').style.display = 'none'; }
+function toggleAdminView() {
+  document.getElementById('view-joueur').style.display = 'none';
+  document.getElementById('view-admin').style.display = 'block';
+}
+function logoutAdmin() {
+  isAdminLoggedIn = false;
+  document.getElementById('admin-toggle-btn').innerText = "🔐 Espace DJ";
+  document.getElementById('view-joueur').style.display = 'block';
+  document.getElementById('view-admin').style.display = 'none';
+}
+
+function renderResponses() {
+  const list = document.getElementById('responses-list');
+  const qr = responses.filter(r => r.q === currentQuestion && teamById(r.tid));
+  if (!qr.length) { list.innerHTML = `<p style="color:var(--text-muted);">Aucune réponse reçue.</p>`; return; }
+  list.innerHTML = qr.map(r => `
+    <div class="response-item">
+      <div><strong>${esc(teamById(r.tid).name)}</strong> : ${esc(r.text)}</div>
+      <div style="white-space:nowrap;">
+        <button class="pts-btn minus" onclick="addPoints(this.dataset.t, -1)" data-t="${r.tid}">−1</button>
+        <button class="pts-btn" onclick="addPoints(this.dataset.t, 1)" data-t="${r.tid}">+1</button>
+        <button class="pts-btn" onclick="addPoints(this.dataset.t, 2)" data-t="${r.tid}">+2</button>
+      </div>
+    </div>`).join('');
+}
+
+function addPoints(tid, pts) {
+  const t = teamById(tid);
+  if (!t) return;
+  t.score += pts;
+  saveState(); updateLeaderboard();
+}
+
+function updateLeaderboard() {
+  const board = document.getElementById('leaderboard');
+  document.getElementById('team-count').innerText = `${teams.length} équipes`;
+  if (!teams.length) { board.innerHTML = `<p style="color:var(--text-muted);">Aucune équipe inscrite pour l’instant.</p>`; return; }
+  board.innerHTML = [...teams].sort((a, b) => b.score - a.score).map(t => `
+    <div class="score-row">
+      <span style="flex:1;">${esc(t.name)}</span>
+      <button class="pts-btn minus" onclick="addPoints(this.dataset.t, -1)" data-t="${t.id}">−1</button>
+      <span class="score-val">${t.score} pts</span>
+      <button class="pts-btn" onclick="addPoints(this.dataset.t, 1)" data-t="${t.id}">+1</button>
+    </div>`).join('');
+}
+
+function renderLock() {
+  const btn = document.getElementById('lock-btn');
+  btn.innerText = isLocked ? '🔓 Ouvrir réponses' : '🔒 Fermer réponses';
+  btn.style.background = isLocked ? '#10b981' : '#ef4444';
+}
+function toggleLock() { isLocked = !isLocked; renderLock(); saveState(); broadcast(); }
+function nextQuestion() {
+  currentQuestion++;
+  isLocked = false;
+  document.getElementById('q-num').innerText = currentQuestion;
+  renderLock(); renderResponses(); saveState(); broadcast();
+}
+
+function openReset() {
+  document.getElementById('reset-input').value = '';
+  document.getElementById('reset-error').innerText = '';
+  document.getElementById('reset-modal').style.display = 'flex';
+}
+function closeReset() { document.getElementById('reset-modal').style.display = 'none'; }
+function confirmReset() {
+  if (document.getElementById('reset-input').value.trim().toUpperCase() !== 'RESET') {
+    document.getElementById('reset-error').innerText = 'Tapez RESET pour confirmer.';
+    return;
+  }
+  teams = []; responses = []; nextId = 1; currentQuestion = 1; isLocked = false;
+  saveState(); renderAll(); closeReset();
+  clients.forEach(c => { safeSend(c, { t: 'you', team: null }); safeSend(c, stateMsg()); });
+}
+
+/* ---------- Connexion entre téléphones (PeerJS) : côté DJ ---------- */
+function stateMsg() { return { t: 'state', q: currentQuestion, locked: isLocked }; }
+function safeSend(c, data) {
+  if (!c || !c.open) return false;
+  try { c.send(data); return true; } catch (e) { return false; }
+}
+function removeClient(c) {
+  clients.delete(c);
+  for (const [token, active] of clientByToken.entries()) {
+    if (active === c) clientByToken.delete(token);
+  }
+  updateHostInfo();
+}
+function broadcast() {
+  const msg = stateMsg();
+  clients.forEach(c => { if (!safeSend(c, msg)) removeClient(c); });
+}
+
+function updateHostInfo(err, muted) {
+  const el = document.getElementById('host-status');
+  if (err) { el.style.color = muted ? 'var(--text-muted)' : '#ef4444'; el.innerText = err; return; }
+  el.style.color = '#10b981';
+  el.innerText = `📡 En ligne · ${clients.size} téléphone(s) connecté(s)`;
+}
+
+function startHost() {
+  if (hostMode) return;
+  hostMode = true;
+  stopPlayer();
+  try {
+    hostPeer = new Peer(HOST_ID, PEER_OPTIONS);
+  } catch (e) {
+    hostMode = false;
+    updateHostInfo('⚠️ Impossible de démarrer la connexion. Rechargez la page.');
+    return;
+  }
+  hostPeer.on('open', () => { hostRetries = 0; updateHostInfo(); });
+  hostPeer.on('disconnected', () => {
+    updateHostInfo('⏳ Signalisation interrompue, reconnexion…', true);
+    try { hostPeer.reconnect(); } catch (e) {
+      hostMode = false;
+      setTimeout(startHost, 2500);
+    }
+  });
+  hostPeer.on('connection', c => {
+    c.on('open', () => { clients.add(c); updateHostInfo(); });
+    c.on('close', () => removeClient(c));
+    c.on('error', () => removeClient(c));
+    c.on('data', d => handleMsg(c, d));
+  });
+  hostPeer.on('error', e => {
+    if (e.type === 'unavailable-id') {
+      hostMode = false;
+      try { hostPeer.destroy(); } catch (x) {}
+      if (hostRetries++ < 10) {
+        updateHostInfo('⏳ Reconnexion en cours… patientez quelques secondes.', true);
+        setTimeout(startHost, 3000);
+      } else { updateHostInfo('⚠️ Un autre écran DJ est déjà ouvert. Fermez-le puis rechargez cette page.'); }
+    } else { updateHostInfo(`⚠️ Connexion impossible (${e.type}). Rechargez la page.`); }
+  });
+}
+
+function handleMsg(c, d) {
+  if (!d || typeof d.token !== 'string' || d.token.length < 8) return;
+  const team = teams.find(t => t.token === d.token);
+
+  if (d.t === 'hello') {
+    // Un seul canal actif par navigateur/token : évite les doublons après un scan répété.
+    const previous = clientByToken.get(d.token);
+    if (previous && previous !== c && previous.open) {
+      try { previous.close(); } catch (e) {}
+      removeClient(previous);
+    }
+    clientByToken.set(d.token, c);
+    safeSend(c, { t: 'you', team: team ? team.name : null });
+    safeSend(c, stateMsg());
+
+  } else if (d.t === 'register') {
+    if (team) return safeSend(c, { t: 'you', team: team.name });
+    const name = String(d.name || '').replace(/\s+/g, ' ').trim().slice(0, 24);
+    if (!name) return safeSend(c, { t: 'err', msg: '❌ Entrez un nom d’équipe.' });
+    if (teams.some(t => t.name.toLowerCase() === name.toLowerCase())) return safeSend(c, { t: 'err', msg: '❌ Ce nom est déjà pris, choisissez-en un autre.' });
+    // Aucun plafond artificiel d'équipes : la capacité dépend du réseau et de l'appareil DJ.
+    teams.push({ id: 't' + (nextId++), name, token: d.token.slice(0, 64), score: 0 });
+    saveState(); updateLeaderboard();
+    safeSend(c, { t: 'you', team: name });
+
+  } else if (d.t === 'answer') {
+    if (!team) return safeSend(c, { t: 'you', team: null });
+    const text = String(d.text || '').trim().slice(0, 120);
+    if (!text) return;
+    if (isLocked) return safeSend(c, { t: 'ack', ok: false, msg: '🔒 Les réponses sont fermées pour cette question.' });
+    if (responses.some(r => r.tid === team.id && r.q === currentQuestion)) return safeSend(c, { t: 'ack', ok: false, msg: '❌ Une seule réponse autorisée par question !' });
+    responses.push({ tid: team.id, text, q: currentQuestion });
+    saveState(); renderResponses();
+    safeSend(c, { t: 'ack', ok: true, msg: `✅ Réponse envoyée pour ${team.name} !` });
+  }
+}
+
+/* ---------- Côté joueur ---------- */
+function showPlayer(mode) {
+  document.getElementById('reg-box').style.display = mode === 'reg' ? 'block' : 'none';
+  document.getElementById('answer-box').style.display = mode === 'play' ? 'block' : 'none';
+}
+function setConn(txt) { document.getElementById('conn-status').innerText = txt; }
+
+function registerTeam() {
+  const name = document.getElementById('team-name').value.trim();
+  const st = document.getElementById('reg-status');
+  if (!name) { st.innerText = '❌ Entrez un nom d’équipe.'; return; }
+  if (!conn || !conn.open) { st.innerText = '⏳ Pas encore connecté au DJ, patientez…'; return; }
+  conn.send({ t: 'register', token: myToken, name });
+  st.innerText = 'Envoi…';
+}
+
+function sendAnswer() {
+  const text = document.getElementById('answer-input').value.trim();
+  if (!text) return;
+  const st = document.getElementById('player-status');
+  if (!conn || !conn.open) { st.innerText = '⏳ Pas encore connecté au DJ, patientez…'; return; }
+  conn.send({ t: 'answer', token: myToken, text });
+  st.innerText = 'Envoi…';
+}
+
+function stopPlayer() {
+  playerGen++;
+  clearTimeout(retryTimer); retryTimer = null;
+  clearTimeout(connectTimer); connectTimer = null;
+  if (conn) { try { conn.close(); } catch (e) {} }
+  if (playerPeer) { try { playerPeer.destroy(); } catch (e) {} }
+  playerPeer = null; conn = null;
+}
+function scheduleRetry(gen, reason) {
+  if (gen !== playerGen || hostMode || retryTimer) return;
+  retryAttempt = Math.min(retryAttempt + 1, 6);
+  const base = Math.min(2500 * Math.pow(1.7, retryAttempt - 1), 20000);
+  const delay = Math.round(base + Math.random() * 1200);
+  setConn(reason || `⏳ Nouvelle tentative dans ${Math.ceil(delay / 1000)} s…`);
+  retryTimer = setTimeout(() => { retryTimer = null; startPlayer(); }, delay);
+}
+function startPlayer() {
+  if (hostMode) return;
+  stopPlayer();
+  const gen = playerGen;
+  setConn('⏳ Connexion au service de liaison…');
+  try {
+    playerPeer = new Peer(undefined, PEER_OPTIONS);
+  } catch (e) {
+    scheduleRetry(gen, '⚠️ Démarrage impossible. Nouvelle tentative…');
+    return;
+  }
+  playerPeer.on('open', () => {
+    if (gen !== playerGen) return;
+    setConn('⏳ Recherche du DJ…');
+    conn = playerPeer.connect(HOST_ID, { reliable: true });
+    clearTimeout(connectTimer);
+    connectTimer = setTimeout(() => {
+      if (gen === playerGen && (!conn || !conn.open)) {
+        setConn('⏳ Le DJ ne répond pas. Nouvelle tentative…');
+        scheduleRetry(gen);
+      }
+    }, 15000);
+    conn.on('open', () => {
+      if (gen !== playerGen) return;
+      clearTimeout(connectTimer); connectTimer = null;
+      retryAttempt = 0;
+      setConn('🟢 Connecté au DJ');
+      safeSend(conn, { t: 'hello', token: myToken });
+    });
+    conn.on('data', d => { if (gen === playerGen) onPlayerData(d); });
+    conn.on('close', () => {
+      if (gen === playerGen) {
+        clearTimeout(connectTimer); connectTimer = null;
+        conn = null;
+        showPlayer('wait');
+        scheduleRetry(gen, '⏳ Connexion perdue. Reconnexion…');
+      }
+    });
+    conn.on('error', e => {
+      if (gen === playerGen) {
+        clearTimeout(connectTimer); connectTimer = null;
+        showPlayer('wait');
+        scheduleRetry(gen, `⚠️ Liaison interrompue (${e && e.type ? e.type : 'réseau'}). Reconnexion…`);
+      }
+    });
+  });
+  playerPeer.on('disconnected', () => {
+    if (gen !== playerGen) return;
+    setConn('⏳ Service de liaison interrompu…');
+    try { playerPeer.reconnect(); } catch (e) { scheduleRetry(gen); }
+  });
+  playerPeer.on('error', e => {
+    if (gen !== playerGen) return;
+    clearTimeout(connectTimer); connectTimer = null;
+    const type = e && e.type ? e.type : 'réseau';
+    showPlayer('wait');
+    scheduleRetry(gen, `⚠️ Connexion impossible (${type}). Nouvelle tentative…`);
+  });
+}
+
+// Safari/iOS peut suspendre une page en arrière-plan. À son retour,
+// on vérifie la liaison au lieu de conserver indéfiniment un faux état connecté.
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && !hostMode && (!conn || !conn.open)) {
+    scheduleRetry(playerGen, '⏳ Reprise de la connexion…');
+  }
+});
+window.addEventListener('online', () => {
+  if (!hostMode && (!conn || !conn.open)) scheduleRetry(playerGen, '🌐 Réseau retrouvé, reconnexion…');
+});
+window.addEventListener('offline', () => {
+  if (!hostMode) setConn('📵 Pas de connexion Internet. Reprise automatique dès le retour du réseau.');
+});
+function onPlayerData(m) {
+  if (m.t === 'you') {
+    if (m.team) {
+      document.getElementById('my-team').innerText = 'Équipe : ' + m.team;
+      showPlayer('play');
+    } else {
+      document.getElementById('player-status').innerText = '';
+      document.getElementById('reg-status').innerText = '';
+      showPlayer('reg');
+    }
+  } else if (m.t === 'err') {
+    document.getElementById('reg-status').innerText = m.msg;
+  } else if (m.t === 'state') {
+    if (m.q !== lastQ) { lastQ = m.q; document.getElementById('player-status').innerText = ''; }
+    setConn(m.locked ? '🔒 Réponses fermées' : `🟢 Connecté · Question ${m.q}`);
+  } else if (m.t === 'ack') {
+    document.getElementById('player-status').innerText = m.msg;
+    if (m.ok) document.getElementById('answer-input').value = '';
+  }
+}
+
+/* ---------- QR code ---------- */
+function openQRModal() {
+  document.getElementById('qr-modal').style.display = 'flex';
+  document.getElementById('qrcode').innerHTML = '';
+  new QRCode(document.getElementById('qrcode'), { text: window.location.href, width: 200, height: 200 });
+}
+function closeQRModal() { document.getElementById('qr-modal').style.display = 'none'; }
+
+myToken = getToken();
+loadState();
+renderAll();
+startPlayer();
+</script>
+</body>
+</html>
